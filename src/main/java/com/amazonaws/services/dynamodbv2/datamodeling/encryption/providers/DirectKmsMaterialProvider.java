@@ -123,7 +123,8 @@ public class DirectKmsMaterialProvider implements EncryptionMaterialsProvider {
         populateKmsEcFromEc(context, ec);
 
         DecryptRequest request = appendUserAgent(new DecryptRequest());
-        request.setCiphertextBlob(ByteBuffer.wrap(Base64.decode(materialDescription.get(ENVELOPE_KEY))));
+        byte[] ciphertextBlob = Base64.decode(materialDescription.get(ENVELOPE_KEY));
+        request.setCiphertextBlob(ciphertextBlob == null ? ByteBuffer.allocate(0) : ByteBuffer.wrap(ciphertextBlob));
         request.setEncryptionContext(ec);
         final DecryptResult decryptResult = kms.decrypt(request);
 
