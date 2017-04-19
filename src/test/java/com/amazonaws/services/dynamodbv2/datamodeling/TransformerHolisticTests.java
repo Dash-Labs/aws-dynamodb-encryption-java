@@ -17,6 +17,7 @@ package com.amazonaws.services.dynamodbv2.datamodeling;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -239,7 +240,16 @@ public class TransformerHolisticTests {
 
     @Before
     public void setUp() {
-        client = DynamoDBEmbedded.create();
+        System.setProperty("java.library.path", "src/test/resources/");
+        try {
+            Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+            fieldSysPath.setAccessible(true);
+            fieldSysPath.set(null, null);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
+
+        client = DynamoDBEmbedded.create().amazonDynamoDB();
         
         ArrayList<AttributeDefinition> attrDef = new ArrayList<AttributeDefinition>();
         attrDef.add(new AttributeDefinition().withAttributeName("hashKey").withAttributeType(ScalarAttributeType.N));
@@ -427,7 +437,8 @@ public class TransformerHolisticTests {
     
     public void generateStandardData(EncryptionMaterialsProvider prov) {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(prov));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(prov));
         mapper.save(new HashKeyOnly("Foo"));
         mapper.save(new HashKeyOnly("Bar"));
         mapper.save(new HashKeyOnly("Baz"));
@@ -454,7 +465,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0SymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(symProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(symProv));
         insertV0SymData(client);
         assertVersionCompatibility(mapper);
     }
@@ -462,7 +474,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0AsymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(asymProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(asymProv));
         insertV0AsymData(client);
         assertVersionCompatibility(mapper);
     }
@@ -474,7 +487,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0FixedWrappingTransformSymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(symProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(symProv));
         insertV0FixedWrappingTransformSymData(client);
         assertVersionCompatibility(mapper);
     }
@@ -482,7 +496,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0FixedWrappingTransformAsymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(asymProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(asymProv));
         insertV0FixedWrappingTransformAsymData(client);
         assertVersionCompatibility(mapper);
     }
@@ -490,7 +505,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0FixedDoubleSymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(symProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(symProv));
         insertV0FixedDoubleSymData(client);
         assertVersionCompatibility_2(mapper);
     }
@@ -498,7 +514,8 @@ public class TransformerHolisticTests {
     @Test
     public void testV0FixedDoubleAsymCompatibility() {
         DynamoDBMapper mapper = new DynamoDBMapper(client,
-                new DynamoDBMapperConfig(SaveBehavior.CLOBBER), new AttributeEncryptor(asymProv));
+                DynamoDBMapperConfig.builder().withSaveBehavior(SaveBehavior.CLOBBER).build(),
+                new AttributeEncryptor(asymProv));
         insertV0FixedDoubleAsymData(client);
         assertVersionCompatibility_2(mapper);
     }

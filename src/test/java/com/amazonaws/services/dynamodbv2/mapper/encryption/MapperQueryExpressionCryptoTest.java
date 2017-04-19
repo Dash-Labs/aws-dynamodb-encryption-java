@@ -20,6 +20,7 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -54,7 +55,7 @@ public class MapperQueryExpressionCryptoTest {
 
     @BeforeClass
     public static void setUp() throws SecurityException, NoSuchMethodException {
-        AmazonDynamoDB dynamo = new AmazonDynamoDBClient();
+        AmazonDynamoDB dynamo = AmazonDynamoDBClientBuilder.defaultClient();
         mapper = TestDynamoDBMapperFactory.createDynamoDBMapper(dynamo);
         testedMethod = DynamoDBMapper.class.getDeclaredMethod("createQueryRequestFromExpression", Class.class, DynamoDBQueryExpression.class, DynamoDBMapperConfig.class);
         testedMethod.setAccessible(true);

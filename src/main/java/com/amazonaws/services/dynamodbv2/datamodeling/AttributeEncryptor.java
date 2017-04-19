@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingsRegistry.Mapping;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMappingsRegistry.Mappings;
 import com.amazonaws.services.dynamodbv2.datamodeling.encryption.DoNotEncrypt;
 import com.amazonaws.services.dynamodbv2.datamodeling.encryption.DoNotTouch;
 import com.amazonaws.services.dynamodbv2.datamodeling.encryption.DynamoDBEncryptor;
@@ -129,17 +127,17 @@ public class AttributeEncryptor implements AttributeTransformer {
             final EnumSet<EncryptionFlags> unknownAttributeBehavior = EnumSet.noneOf(EncryptionFlags.class);
 
             if (shouldTouch(clazz)) {
-                Mappings mappings = DynamoDBMappingsRegistry.instance().mappingsOf(clazz);
+                StandardBeanProperties.Beans<T> mappings = StandardBeanProperties.of(clazz);
 
-                for (Mapping mapping : mappings.getMappings()) {
+                for (StandardBeanProperties.Bean<T, Object> bean : mappings.map().values()) {
                     final EnumSet<EncryptionFlags> flags = EnumSet.noneOf(EncryptionFlags.class);
-                    if (shouldTouch(mapping)) {
-                        if (shouldEncryptAttribute(clazz, mapping)) {
+                    if (shouldTouch(bean)) {
+                        if (shouldEncryptAttribute(clazz, bean)) {
                             flags.add(EncryptionFlags.ENCRYPT);
                         }
                         flags.add(EncryptionFlags.SIGN);
                     }
-                    attributeFlags.put(mapping.getAttributeName(), Collections.unmodifiableSet(flags));
+                    attributeFlags.put(bean.properties().attributeName(), Collections.unmodifiableSet(flags));
                 }
 
                 if (handleUnknownAttributes) {
@@ -168,8 +166,8 @@ public class AttributeEncryptor implements AttributeTransformer {
     /**
      * @return True if {@link DoNotTouch} is not present on the getter level. False otherwise.
      */
-    private boolean shouldTouch(Mapping mapping) {
-        return !doNotTouch(mapping);
+    private <T> boolean shouldTouch(StandardBeanProperties.Bean<T, Object> bean) {
+        return !doNotTouch(bean);
     }
 
     /**
@@ -182,8 +180,9 @@ public class AttributeEncryptor implements AttributeTransformer {
     /**
      * @return True if {@link DoNotTouch} IS present on the getter level. False otherwise.
      */
-    private boolean doNotTouch(Mapping mapping) {
-        return mapping.getter().isAnnotationPresent(DoNotTouch.class);
+    @SuppressWarnings("deprecation")
+    private <T> boolean doNotTouch(StandardBeanProperties.Bean<T, Object> bean) {
+        return bean.type().getter().isAnnotationPresent(DoNotTouch.class);
     }
 
     /**
@@ -203,15 +202,16 @@ public class AttributeEncryptor implements AttributeTransformer {
     /**
      * @return True if {@link DoNotEncrypt} IS present on the getter level. False otherwise.
      */
-    private boolean doNotEncrypt(Mapping mapping) {
-        return mapping.getter().isAnnotationPresent(DoNotEncrypt.class);
+    @SuppressWarnings("deprecation")
+    private <T> boolean doNotEncrypt(StandardBeanProperties.Bean<T, Object> bean) {
+        return bean.type().getter().isAnnotationPresent(DoNotEncrypt.class);
     }
 
     /**
      * @return True if the attribute should be encrypted, false otherwise.
      */
-    private boolean shouldEncryptAttribute(final Class<?> clazz, final Mapping mapping) {
-        return !(doNotEncrypt(clazz) || doNotEncrypt(mapping) || mapping.isPrimaryKey() || mapping.isVersion());
+    private <T> boolean shouldEncryptAttribute(final Class<?> clazz, final StandardBeanProperties.Bean<T, Object> bean) {
+        return !(doNotEncrypt(clazz) || doNotEncrypt(bean) || (bean.properties().keyType() != null) || bean.properties().versioned());
     }
 
     private static EncryptionContext paramsToContext(Parameters<?> params) {

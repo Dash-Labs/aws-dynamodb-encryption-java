@@ -65,6 +65,7 @@ public class AttributeValueMarshaller {
      * @return the serialized AttributeValue
      * @see java.io.DataInput
      */
+    @SuppressWarnings("try")
     public static ByteBuffer marshall(final AttributeValue attributeValue) {
         try (ByteArrayOutputStream resultBytes = new ByteArrayOutputStream();
                 DataOutputStream out = new DataOutputStream(resultBytes);) {

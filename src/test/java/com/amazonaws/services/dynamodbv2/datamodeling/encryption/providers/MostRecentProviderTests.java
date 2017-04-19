@@ -61,7 +61,7 @@ public class MostRecentProviderTests {
     @Before
     public void setup() {
         methodCalls = new HashMap<String, Integer>();
-        client = instrument(DynamoDBEmbedded.create(), AmazonDynamoDB.class, methodCalls);
+        client = instrument(DynamoDBEmbedded.create().amazonDynamoDB(), AmazonDynamoDB.class, methodCalls);
         MetaStore.createTable(client, TABLE_NAME, new ProvisionedThroughput(1L, 1L));
         store = new MetaStore(client, TABLE_NAME, ENCRYPTOR);
         ctx = new EncryptionContext.Builder().build();
@@ -266,7 +266,7 @@ public class MostRecentProviderTests {
 
     @SuppressWarnings("unchecked")
     private static <T> T instrument(final T obj, final Class<T> clazz, final Map<String, Integer> map) {
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz },
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
                 new InvocationHandler() {
             private final Object lock = new Object();
 

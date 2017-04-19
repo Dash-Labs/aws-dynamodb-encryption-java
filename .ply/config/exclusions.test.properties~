@@ -1,0 +1,2 @@
+com.amazonaws:aws-java-sdk-dynamodb=1.11.86
+com.amazonaws:DynamoDBLocal=1.11.86

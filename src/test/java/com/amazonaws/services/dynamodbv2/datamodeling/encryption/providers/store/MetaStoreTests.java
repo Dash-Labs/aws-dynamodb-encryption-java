@@ -56,7 +56,7 @@ public class MetaStoreTests {
 
     @Before
     public void setup() {
-        client = synchronize(DynamoDBEmbedded.create(), AmazonDynamoDB.class);
+        client = synchronize(DynamoDBEmbedded.create().amazonDynamoDB(), AmazonDynamoDB.class);
         MetaStore.createTable(client, TABLE_NAME, new ProvisionedThroughput(1L, 1L));
         store = new MetaStore(client, TABLE_NAME, ENCRYPTOR);
         ctx = new EncryptionContext.Builder().build();
@@ -228,7 +228,7 @@ public class MetaStoreTests {
 
     @SuppressWarnings("unchecked")
     private static <T> T synchronize(final T obj, final Class<T> clazz) {
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz },
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz },
                 new InvocationHandler() {
             private final Object lock = new Object();
 

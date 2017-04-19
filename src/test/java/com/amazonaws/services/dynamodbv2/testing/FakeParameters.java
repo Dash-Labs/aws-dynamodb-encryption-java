@@ -36,7 +36,7 @@ public class FakeParameters<T> {
         @SuppressWarnings("unchecked")
         AttributeTransformer.Parameters<T> proxyObject = (AttributeTransformer.Parameters<T>) Proxy
                 .newProxyInstance(AttributeTransformer.class.getClassLoader(),
-                        new Class[] { AttributeTransformer.Parameters.class },
+                        new Class<?>[] { AttributeTransformer.Parameters.class },
                         new ParametersInvocationHandler<T>(fakeParams));
         return proxyObject;
     }
